@@ -24,9 +24,7 @@ export const MergeResult: React.FC<MergeResultProps> = ({ data, onReset }) => {
       filterRules.every((rule) => {
         const value = row[rule.column];
         const isEmpty =
-          value === null ||
-          value === undefined ||
-          String(value).trim() === "";
+          value === null || value === undefined || String(value).trim() === "";
         return rule.condition === "is_empty" ? !isEmpty : isEmpty;
       }),
     );
@@ -38,7 +36,11 @@ export const MergeResult: React.FC<MergeResultProps> = ({ data, onReset }) => {
   const addFilterRule = () => {
     setFilterRules((prev) => [
       ...prev,
-      { id: crypto.randomUUID(), column: headers[0] ?? "", condition: "is_empty" },
+      {
+        id: crypto.randomUUID(),
+        column: headers[0] ?? "",
+        condition: "is_empty",
+      },
     ]);
   };
 
@@ -112,7 +114,8 @@ export const MergeResult: React.FC<MergeResultProps> = ({ data, onReset }) => {
           Total rows: {data.length}
           {filterRules.length > 0 && (
             <span className="filter-row-count">
-              {" "}→ {filteredData.length} after filters
+              {" "}
+              → {filteredData.length} after filters
             </span>
           )}
         </p>
