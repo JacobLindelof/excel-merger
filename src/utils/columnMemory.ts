@@ -59,3 +59,36 @@ export const clearColumnSelection = (columns: string[]): void => {
   const hash = generateColumnsHash(columns);
   localStorage.removeItem(hash);
 };
+
+interface SavedMergeKeyConfig {
+  commonKeyColumn?: string;
+  perFileKeyColumns?: Record<string, string>;
+}
+
+const getMergeKeyConfigStorageKey = (columns: string[]): string => {
+  return `${generateColumnsHash(columns)}_merge_keys`;
+};
+
+export const saveMergeKeyConfig = (
+  columns: string[],
+  config: SavedMergeKeyConfig,
+): void => {
+  const storageKey = getMergeKeyConfigStorageKey(columns);
+  localStorage.setItem(storageKey, JSON.stringify(config));
+};
+
+export const restoreMergeKeyConfig = (
+  columns: string[],
+): SavedMergeKeyConfig | null => {
+  const storageKey = getMergeKeyConfigStorageKey(columns);
+  const saved = localStorage.getItem(storageKey);
+
+  if (!saved) return null;
+
+  try {
+    const parsed = JSON.parse(saved) as SavedMergeKeyConfig;
+    return parsed;
+  } catch {
+    return null;
+  }
+};

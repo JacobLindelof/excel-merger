@@ -6,7 +6,7 @@ import { HeaderConfiguration } from "./components/HeaderConfiguration";
 import { HeaderDetectionDialog } from "./components/HeaderDetectionDialog";
 import { MergeConfiguration } from "./components/MergeConfiguration";
 import { MergeResult } from "./components/MergeResult";
-import type { SpreadsheetFile } from "./types";
+import type { MergeKeyConfig, SpreadsheetFile } from "./types";
 import { mergeSpreadsheets } from "./utils/mergeLogic";
 import { parseFile } from "./utils/spreadsheetParser";
 
@@ -124,12 +124,15 @@ export default function App() {
     setFiles((prev) => prev.filter((f) => f.id !== fileId));
   };
 
-  const handleMerge = (keyColumn: string, selectedColumns: Set<string>) => {
+  const handleMerge = (
+    keyConfig: MergeKeyConfig,
+    selectedColumns: Set<string>,
+  ) => {
     try {
       setLoading(true);
       setError("");
 
-      const result = mergeSpreadsheets(files, keyColumn, selectedColumns);
+      const result = mergeSpreadsheets(files, keyConfig, selectedColumns);
       setMergedData(result);
       setState("result");
     } catch (err) {
@@ -219,7 +222,11 @@ export default function App() {
               <>
                 <p>Ready to merge {files.length} files</p>
                 <FilePreview files={files} onRemoveFile={handleRemoveFile} />
-                <MergeConfiguration files={files} onMerge={handleMerge} />
+                <MergeConfiguration
+                  key={files.map((f) => f.id).join("|")}
+                  files={files}
+                  onMerge={handleMerge}
+                />
               </>
             )}
           </div>

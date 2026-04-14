@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo, useState } from "react";
 import "../styles/components.css";
 import type { SpreadsheetFile } from "../types";
 
@@ -13,10 +13,23 @@ export const ColumnSelector: React.FC<ColumnSelectorProps> = ({
   selectedColumns,
   onSelectionChange,
 }) => {
+  const [searchQuery, setSearchQuery] = useState("");
+
   // Get all unique columns across all files
   const allColumns = Array.from(
     new Set(files.flatMap((f) => f.headers)),
   ).sort();
+
+  const filteredColumns = useMemo(() => {
+    const normalizedQuery = searchQuery.trim().toLowerCase();
+    if (!normalizedQuery) {
+      return allColumns;
+    }
+
+    return allColumns.filter((column) =>
+      column.toLowerCase().includes(normalizedQuery),
+    );
+  }, [allColumns, searchQuery]);
 
   const handleSelectAll = () => {
     onSelectionChange(new Set(allColumns));
@@ -38,6 +51,16 @@ export const ColumnSelector: React.FC<ColumnSelectorProps> = ({
 
   return (
     <div className="column-selector">
+      <div className="column-search">
+        <input
+          type="text"
+          className="column-search-input"
+          placeholder="Search columns..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+      </div>
+
       <div className="selector-controls">
         <button className="btn btn-small" onClick={handleSelectAll}>
           Select All
@@ -48,21 +71,28 @@ export const ColumnSelector: React.FC<ColumnSelectorProps> = ({
       </div>
 
       <div className="columns-grid">
-        {allColumns.map((column) => (
-          <div key={column} className="column-checkbox">
-            <input
-              type="checkbox"
-              id={`col-${column}`}
-              checked={selectedColumns.has(column)}
-              onChange={() => handleColumnToggle(column)}
-            />
-            <label htmlFor={`col-${column}`}>{column}</label>
+        {filteredColumns.length === 0 ? (
+          <div className="column-search-empty">
+            No columns match your search.
           </div>
-        ))}
+        ) : (
+          filteredColumns.map((column) => (
+            <div key={column} className="column-checkbox">
+              <input
+                type="checkbox"
+                id={`col-${column}`}
+                checked={selectedColumns.has(column)}
+                onChange={() => handleColumnToggle(column)}
+              />
+              <label htmlFor={`col-${column}`}>{column}</label>
+            </div>
+          ))
+        )}
       </div>
 
       <div className="selected-info">
         Selected {selectedColumns.size} of {allColumns.length} columns
+        {searchQuery.trim() && ` (showing ${filteredColumns.length} filtered)`}
       </div>
     </div>
   );

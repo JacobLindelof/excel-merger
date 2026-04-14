@@ -11,3 +11,8 @@ export interface MergeConfig {
   selectedColumns: Set<string>;
   files: SpreadsheetFile[];
 }
+
+export interface MergeKeyConfig {
+  commonKeyColumn?: string;
+  perFileKeyColumns?: Record<string, string>;
+}

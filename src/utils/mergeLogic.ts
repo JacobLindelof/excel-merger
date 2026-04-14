@@ -1,29 +1,73 @@
 import * as XLSX from "xlsx";
-import type { SpreadsheetFile } from "../types";
+import type { MergeKeyConfig, SpreadsheetFile } from "../types";
 
 export const mergeSpreadsheets = (
   files: SpreadsheetFile[],
-  keyColumn: string,
+  keyConfig: MergeKeyConfig,
   selectedColumns: Set<string>,
 ): Record<string, unknown>[] => {
   if (files.length === 0) return [];
 
-  // Validate that all files have the key column
-  const filesWithKey = files.filter((file) => file.headers.includes(keyColumn));
-  if (filesWithKey.length !== files.length) {
-    throw new Error("Not all files contain the selected merge column.");
+  const commonKeyColumn = keyConfig.commonKeyColumn;
+  const perFileKeyColumns = keyConfig.perFileKeyColumns;
+
+  if (commonKeyColumn) {
+    const filesWithKey = files.filter((file) =>
+      file.headers.includes(commonKeyColumn),
+    );
+    if (filesWithKey.length !== files.length) {
+      throw new Error("Not all files contain the selected merge column.");
+    }
+
+    // Start with the first file
+    let merged = [...filesWithKey[0].data];
+
+    // Merge other files
+    for (let i = 1; i < filesWithKey.length; i++) {
+      const currentFile = filesWithKey[i];
+      merged = mergeTwoDatasets(
+        merged,
+        currentFile.data,
+        commonKeyColumn,
+        commonKeyColumn,
+      );
+    }
+
+    return filterColumns(merged, selectedColumns);
+  }
+
+  if (
+    !perFileKeyColumns ||
+    Object.keys(perFileKeyColumns).length !== files.length
+  ) {
+    throw new Error("Please select one merge column for each file.");
+  }
+
+  for (const file of files) {
+    const keyColumn = perFileKeyColumns[file.id];
+    if (!keyColumn || !file.headers.includes(keyColumn)) {
+      throw new Error(`Missing or invalid merge column for file: ${file.name}`);
+    }
   }
 
   // Start with the first file
-  let merged = [...filesWithKey[0].data];
+  let merged = [...files[0].data];
+  const baseKey = perFileKeyColumns[files[0].id];
 
   // Merge other files
-  for (let i = 1; i < filesWithKey.length; i++) {
-    const currentFile = filesWithKey[i];
-    merged = mergeTwoDatasets(merged, currentFile.data, keyColumn);
+  for (let i = 1; i < files.length; i++) {
+    const currentFile = files[i];
+    const rightKey = perFileKeyColumns[currentFile.id];
+    merged = mergeTwoDatasets(merged, currentFile.data, baseKey, rightKey);
   }
 
-  // Filter columns
+  return filterColumns(merged, selectedColumns);
+};
+
+const filterColumns = (
+  merged: Record<string, unknown>[],
+  selectedColumns: Set<string>,
+): Record<string, unknown>[] => {
   const finalData = merged.map((row) => {
     const filteredRow: Record<string, unknown> = {};
     selectedColumns.forEach((col) => {
@@ -40,12 +84,13 @@ export const mergeSpreadsheets = (
 const mergeTwoDatasets = (
   left: Record<string, unknown>[],
   right: Record<string, unknown>[],
-  keyColumn: string,
+  leftKeyColumn: string,
+  rightKeyColumn: string,
 ): Record<string, unknown>[] => {
   // Create a map of right data by key column for efficient lookup
   const rightMap = new Map<unknown, Record<string, unknown>>();
   right.forEach((row) => {
-    const key = row[keyColumn];
+    const key = row[rightKeyColumn];
     if (key !== null && key !== undefined) {
       rightMap.set(key, row);
     }
@@ -53,9 +98,9 @@ const mergeTwoDatasets = (
 
   // Merge - only keep rows where both datasets have matching keys
   return left
-    .filter((leftRow) => rightMap.has(leftRow[keyColumn]))
+    .filter((leftRow) => rightMap.has(leftRow[leftKeyColumn]))
     .map((leftRow) => {
-      const rightRow = rightMap.get(leftRow[keyColumn])!;
+      const rightRow = rightMap.get(leftRow[leftKeyColumn])!;
       return { ...leftRow, ...rightRow };
     });
 };
