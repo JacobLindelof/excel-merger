@@ -1,0 +1,11 @@
+ProductID,ProductName,Category,Price,Supplier
+P001,Laptop Pro,Electronics,1299.99,TechCorp
+P002,Wireless Mouse,Electronics,29.99,TechCorp
+P003,USB-C Cable,Electronics,12.99,CableCo
+P004,Monitor 27inch,Electronics,299.99,DisplayTech
+P005,Mechanical Keyboard,Electronics,89.99,KeyboardPro
+P006,Notebook Set,Stationery,15.99,PaperWorks
+P007,Gel Pens,Stationery,8.99,PaperWorks
+P008,Desk Lamp,Office,45.99,LightCorp
+P009,Office Chair,Office,249.99,FurnitureCo
+P010,Standing Desk,Office,599.99,FurnitureCo

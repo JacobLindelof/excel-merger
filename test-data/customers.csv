@@ -1,0 +1,9 @@
+CustomerID,Name,Email,City,Country
+C001,John Smith,john.smith@email.com,New York,USA
+C002,Maria Garcia,maria.garcia@email.com,Madrid,Spain
+C003,Chen Wei,chen.wei@email.com,Shanghai,China
+C004,Anna Mueller,anna.mueller@email.com,Berlin,Germany
+C005,Emma Thompson,emma.thompson@email.com,London,UK
+C006,Diego Rodriguez,diego.rodriguez@email.com,Mexico City,Mexico
+C007,Sara Nielsen,sara.nielsen@email.com,Copenhagen,Denmark
+C008,James O'Connor,james.oconnor@email.com,Dublin,Ireland

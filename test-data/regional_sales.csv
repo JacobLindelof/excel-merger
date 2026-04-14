@@ -1,0 +1,9 @@
+CustomerID,Region,Sales2023,Sales2024,YoYGrowth
+C001,North America,5000,6250,25%
+C002,Europe,3500,4100,17%
+C003,Asia Pacific,8000,9200,15%
+C004,Europe,4200,4800,14%
+C005,Europe,6500,7100,9%
+C006,Latin America,2800,3400,21%
+C007,Europe,5100,5800,14%
+C008,Europe,3200,3800,19%
