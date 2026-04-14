@@ -1,12 +1,28 @@
 import React, { useEffect, useMemo, useState } from "react";
 import "../styles/components.css";
 import { exportToCSV, exportToExcel } from "../utils/mergeLogic";
+import {
+  restoreExportConfig,
+  saveExportConfig,
+} from "../utils/columnMemory";
+import type { SavedFilterRule } from "../utils/columnMemory";
 
 interface RowFilterRule {
   id: string;
   column: string;
   condition: "is_empty" | "has_data";
 }
+
+const ruleToSaved = (r: RowFilterRule): SavedFilterRule => ({
+  column: r.column,
+  condition: r.condition,
+});
+
+const savedToRule = (s: SavedFilterRule): RowFilterRule => ({
+  id: crypto.randomUUID(),
+  column: s.column,
+  condition: s.condition,
+});
 
 interface MergeResultProps {
   data: Record<string, unknown>[];
@@ -15,8 +31,12 @@ interface MergeResultProps {
 
 export const MergeResult: React.FC<MergeResultProps> = ({ data, onReset }) => {
   const headers = data.length > 0 ? Object.keys(data[0]) : [];
+  const headersKey = headers.join("|");
 
-  const [filterRules, setFilterRules] = useState<RowFilterRule[]>([]);
+  const [filterRules, setFilterRules] = useState<RowFilterRule[]>(() => {
+    const saved = restoreExportConfig(headers);
+    return saved ? saved.filterRules.map(savedToRule) : [];
+  });
 
   const filteredData = useMemo(() => {
     if (filterRules.length === 0) return data;
@@ -58,19 +78,44 @@ export const MergeResult: React.FC<MergeResultProps> = ({ data, onReset }) => {
     );
   };
 
-  const [columnOrder, setColumnOrder] = useState<string[]>(headers);
-  const [renamedHeaders, setRenamedHeaders] = useState<Record<string, string>>(
-    {},
-  );
+  const [columnOrder, setColumnOrder] = useState<string[]>(() => {
+    const saved = restoreExportConfig(headers);
+    return saved ? saved.columnOrder : headers;
+  });
+  const [renamedHeaders, setRenamedHeaders] = useState<Record<string, string>>(() => {
+    const saved = restoreExportConfig(headers);
+    if (saved) return saved.renamedHeaders;
+    const defaults: Record<string, string> = {};
+    headers.forEach((h) => { defaults[h] = h; });
+    return defaults;
+  });
 
   useEffect(() => {
-    setColumnOrder(headers);
-    const nextRenamedHeaders: Record<string, string> = {};
-    headers.forEach((header) => {
-      nextRenamedHeaders[header] = header;
+    const saved = restoreExportConfig(headers);
+    if (saved) {
+      setColumnOrder(saved.columnOrder);
+      setRenamedHeaders(saved.renamedHeaders);
+      setFilterRules(saved.filterRules.map(savedToRule));
+    } else {
+      setColumnOrder(headers);
+      const nextRenamedHeaders: Record<string, string> = {};
+      headers.forEach((header) => {
+        nextRenamedHeaders[header] = header;
+      });
+      setRenamedHeaders(nextRenamedHeaders);
+      setFilterRules([]);
+    }
+  }, [headersKey]);
+
+  // Persist whenever config changes
+  useEffect(() => {
+    if (headers.length === 0) return;
+    saveExportConfig(headers, {
+      columnOrder,
+      renamedHeaders,
+      filterRules: filterRules.map(ruleToSaved),
     });
-    setRenamedHeaders(nextRenamedHeaders);
-  }, [headers.join("|")]);
+  }, [columnOrder.join(","), JSON.stringify(renamedHeaders), JSON.stringify(filterRules.map(ruleToSaved))]);
 
   const moveColumn = (index: number, direction: "up" | "down") => {
     const targetIndex = direction === "up" ? index - 1 : index + 1;

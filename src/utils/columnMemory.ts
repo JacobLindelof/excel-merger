@@ -92,3 +92,55 @@ export const restoreMergeKeyConfig = (
     return null;
   }
 };
+
+// --- Export config (column order, renames, row filters) ---
+
+export interface SavedFilterRule {
+  column: string;
+  condition: "is_empty" | "has_data";
+}
+
+export interface SavedExportConfig {
+  columnOrder: string[];
+  renamedHeaders: Record<string, string>;
+  filterRules: SavedFilterRule[];
+}
+
+const getExportConfigStorageKey = (columns: string[]): string => {
+  return `${generateColumnsHash(columns)}_export_config`;
+};
+
+export const saveExportConfig = (
+  columns: string[],
+  config: SavedExportConfig,
+): void => {
+  const storageKey = getExportConfigStorageKey(columns);
+  localStorage.setItem(storageKey, JSON.stringify(config));
+};
+
+export const restoreExportConfig = (
+  columns: string[],
+): SavedExportConfig | null => {
+  const storageKey = getExportConfigStorageKey(columns);
+  const saved = localStorage.getItem(storageKey);
+  if (!saved) return null;
+  try {
+    const parsed = JSON.parse(saved) as SavedExportConfig;
+    // Only keep columns that still exist
+    const validOrder = parsed.columnOrder.filter((c) => columns.includes(c));
+    // Append any new columns not in saved order
+    columns.forEach((c) => {
+      if (!validOrder.includes(c)) validOrder.push(c);
+    });
+    const validRenames: Record<string, string> = {};
+    columns.forEach((c) => {
+      validRenames[c] = parsed.renamedHeaders?.[c] ?? c;
+    });
+    const validFilters = (parsed.filterRules ?? []).filter((r) =>
+      columns.includes(r.column),
+    );
+    return { columnOrder: validOrder, renamedHeaders: validRenames, filterRules: validFilters };
+  } catch {
+    return null;
+  }
+};
