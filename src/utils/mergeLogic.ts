@@ -105,23 +105,55 @@ const mergeTwoDatasets = (
     });
 };
 
+interface ExportOptions {
+  columnOrder?: string[];
+  renamedHeaders?: Record<string, string>;
+}
+
+const transformDataForExport = (
+  data: Record<string, unknown>[],
+  options?: ExportOptions,
+): Record<string, unknown>[] => {
+  if (data.length === 0) {
+    return [];
+  }
+
+  const baseHeaders = Object.keys(data[0]);
+  const orderedHeaders = options?.columnOrder?.length
+    ? options.columnOrder.filter((header) => baseHeaders.includes(header))
+    : baseHeaders;
+  const renamedHeaders = options?.renamedHeaders ?? {};
+
+  return data.map((row) => {
+    const transformedRow: Record<string, unknown> = {};
+
+    orderedHeaders.forEach((header) => {
+      const exportHeader = renamedHeaders[header]?.trim() || header;
+      transformedRow[exportHeader] = row[header];
+    });
+
+    return transformedRow;
+  });
+};
+
 export const exportToCSV = (
   data: Record<string, unknown>[],
   filename: string,
+  options?: ExportOptions,
 ): void => {
   if (data.length === 0) {
     alert("No data to export");
     return;
   }
 
-  const headers = Object.keys(data[0]);
+  const exportData = transformDataForExport(data, options);
+  const headers = Object.keys(exportData[0]);
   const csv = [
     headers.join(","),
-    ...data.map((row) =>
+    ...exportData.map((row) =>
       headers
         .map((header) => {
           const value = row[header];
-          // Escape quotes and wrap in quotes if contains comma or quotes
           const stringValue = String(value ?? "");
           if (
             stringValue.includes(",") ||
@@ -150,13 +182,15 @@ export const exportToCSV = (
 export const exportToExcel = (
   data: Record<string, unknown>[],
   filename: string,
+  options?: ExportOptions,
 ): void => {
   if (data.length === 0) {
     alert("No data to export");
     return;
   }
 
-  const worksheet = XLSX.utils.json_to_sheet(data);
+  const exportData = transformDataForExport(data, options);
+  const worksheet = XLSX.utils.json_to_sheet(exportData);
   const workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, worksheet, "Merged Data");
   XLSX.writeFile(workbook, `${filename}.xlsx`);

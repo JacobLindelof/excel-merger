@@ -413,6 +413,110 @@
   margin: 0.5rem 0 1rem 0;
 }
 
+.filter-row-count {
+  font-weight: 600;
+  color: #2980b9;
+}
+
+.row-filter-rules {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.row-filter-rule {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #ecf0f1;
+  border-radius: 6px;
+  flex-wrap: wrap;
+}
+
+.row-filter-label {
+  font-size: 0.9rem;
+  color: #555;
+  white-space: nowrap;
+}
+
+.row-filter-select {
+  padding: 0.4rem 0.6rem;
+  border: 1px solid #bdc3c7;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  font-family: inherit;
+  background: white;
+  cursor: pointer;
+}
+
+.row-filter-select:focus {
+  outline: none;
+  border-color: #3498db;
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.btn-danger {
+  background-color: #e74c3c;
+  color: white;
+  border: none;
+}
+
+.btn-danger:hover {
+  background-color: #c0392b;
+}
+
+.export-columns-config {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.export-column-row {
+  display: grid;
+  grid-template-columns: 48px minmax(160px, 1fr) minmax(180px, 1fr) 90px;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.5rem;
+  border: 1px solid #ecf0f1;
+  border-radius: 6px;
+}
+
+.export-column-order {
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.export-column-original {
+  color: #555;
+  font-size: 0.95rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.export-column-rename {
+  width: 100%;
+  padding: 0.5rem 0.65rem;
+  border: 1px solid #bdc3c7;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  font-family: inherit;
+}
+
+.export-column-rename:focus {
+  outline: none;
+  border-color: #3498db;
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.export-column-actions {
+  display: flex;
+  gap: 0.35rem;
+}
+
 .table-container {
   overflow-x: auto;
   overflow-y: auto;
@@ -533,6 +637,10 @@
 
   .button-group {
     flex-direction: column;
+  }
+
+  .export-column-row {
+    grid-template-columns: 1fr;
   }
 
   .table-container {
