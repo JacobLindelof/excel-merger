@@ -116,7 +116,9 @@ export const MergeConfiguration: React.FC<MergeConfigurationProps> = ({
       }
     });
 
-    saveMergeKeyConfig(allColumns, { perFileKeyColumns: stablePerFileKeyColumns });
+    saveMergeKeyConfig(allColumns, {
+      perFileKeyColumns: stablePerFileKeyColumns,
+    });
   }, [
     allColumns.join(","),
     files.map((file) => getStableFileKey(file)).join(","),
