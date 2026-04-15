@@ -1,11 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 import "../styles/components.css";
-import { exportToCSV, exportToExcel } from "../utils/mergeLogic";
-import {
-  restoreExportConfig,
-  saveExportConfig,
-} from "../utils/columnMemory";
 import type { SavedFilterRule } from "../utils/columnMemory";
+import { restoreExportConfig, saveExportConfig } from "../utils/columnMemory";
+import { exportToCSV, exportToExcel } from "../utils/mergeLogic";
 
 interface RowFilterRule {
   id: string;
@@ -82,13 +79,17 @@ export const MergeResult: React.FC<MergeResultProps> = ({ data, onReset }) => {
     const saved = restoreExportConfig(headers);
     return saved ? saved.columnOrder : headers;
   });
-  const [renamedHeaders, setRenamedHeaders] = useState<Record<string, string>>(() => {
-    const saved = restoreExportConfig(headers);
-    if (saved) return saved.renamedHeaders;
-    const defaults: Record<string, string> = {};
-    headers.forEach((h) => { defaults[h] = h; });
-    return defaults;
-  });
+  const [renamedHeaders, setRenamedHeaders] = useState<Record<string, string>>(
+    () => {
+      const saved = restoreExportConfig(headers);
+      if (saved) return saved.renamedHeaders;
+      const defaults: Record<string, string> = {};
+      headers.forEach((h) => {
+        defaults[h] = h;
+      });
+      return defaults;
+    },
+  );
 
   useEffect(() => {
     const saved = restoreExportConfig(headers);
@@ -115,7 +116,11 @@ export const MergeResult: React.FC<MergeResultProps> = ({ data, onReset }) => {
       renamedHeaders,
       filterRules: filterRules.map(ruleToSaved),
     });
-  }, [columnOrder.join(","), JSON.stringify(renamedHeaders), JSON.stringify(filterRules.map(ruleToSaved))]);
+  }, [
+    columnOrder.join(","),
+    JSON.stringify(renamedHeaders),
+    JSON.stringify(filterRules.map(ruleToSaved)),
+  ]);
 
   const moveColumn = (index: number, direction: "up" | "down") => {
     const targetIndex = direction === "up" ? index - 1 : index + 1;

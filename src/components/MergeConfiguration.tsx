@@ -18,6 +18,10 @@ export const MergeConfiguration: React.FC<MergeConfigurationProps> = ({
   files,
   onMerge,
 }) => {
+  const getStableFileKey = (file: SpreadsheetFile): string => {
+    return `${file.name}|${file.headers.join("|")}`;
+  };
+
   const allColumns = files.flatMap((f) => f.headers);
   const commonColumns =
     files.length > 0
@@ -62,7 +66,11 @@ export const MergeConfiguration: React.FC<MergeConfigurationProps> = ({
     if (restored?.perFileKeyColumns) {
       const validMap: Record<string, string> = {};
       files.forEach((file) => {
-        const candidate = restored.perFileKeyColumns?.[file.id];
+        const stableKey = getStableFileKey(file);
+        // Backward compatibility: support previously saved file-id keyed values.
+        const candidate =
+          restored.perFileKeyColumns?.[stableKey] ??
+          restored.perFileKeyColumns?.[file.id];
         if (candidate && file.headers.includes(candidate)) {
           validMap[file.id] = candidate;
         } else if (file.headers.length > 0) {
@@ -100,9 +108,18 @@ export const MergeConfiguration: React.FC<MergeConfigurationProps> = ({
       return;
     }
 
-    saveMergeKeyConfig(allColumns, { perFileKeyColumns });
+    const stablePerFileKeyColumns: Record<string, string> = {};
+    files.forEach((file) => {
+      const selectedKey = perFileKeyColumns[file.id];
+      if (selectedKey) {
+        stablePerFileKeyColumns[getStableFileKey(file)] = selectedKey;
+      }
+    });
+
+    saveMergeKeyConfig(allColumns, { perFileKeyColumns: stablePerFileKeyColumns });
   }, [
     allColumns.join(","),
+    files.map((file) => getStableFileKey(file)).join(","),
     hasCommonColumns,
     selectedKeyColumn,
     JSON.stringify(perFileKeyColumns),

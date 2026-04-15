@@ -139,7 +139,11 @@ export const restoreExportConfig = (
     const validFilters = (parsed.filterRules ?? []).filter((r) =>
       columns.includes(r.column),
     );
-    return { columnOrder: validOrder, renamedHeaders: validRenames, filterRules: validFilters };
+    return {
+      columnOrder: validOrder,
+      renamedHeaders: validRenames,
+      filterRules: validFilters,
+    };
   } catch {
     return null;
   }
